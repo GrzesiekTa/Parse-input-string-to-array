@@ -1,4 +1,6 @@
 # Parse-input-string-to-array
+command run tests : ./vendor/bin/phpunit --bootstrap vendor/autoload.php tests/TagRecognizerTest
+
 
 /**
  * Class parse data from string - example:
