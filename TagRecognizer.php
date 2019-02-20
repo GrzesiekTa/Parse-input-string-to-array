@@ -24,98 +24,106 @@
  */
 class TagRecognizer {
 
-	/**
-	 *
-	 * @param type $string
-	 */
-	public function __construct(string $string) {
-		$this->string = $string;
-	}
+    /**
+     * @var string 
+     */
+    private $string;
 
-	/**
-	 * get array tags
-	 *
-	 * @return array
-	 */
-	public function getParseTags(): array{
-		//get all between example="example" ::: (\w+) creates array $result[1]-----------([^"]*) creates array $result[2]
-		preg_match_all('@(\w+)="([^"]*)"@', $this->string, $result);
-		//new array created from $result[1](key) => $result[2](Value)
-		$arrayTags = array_combine($result[1], $result[2]);
+    /**
+     * 
+     * @param string $string
+     */
+    public function __construct($string) {
+        $this->string = $string;
+    }
 
-		return $this->parseTags($arrayTags);
-	}
+    /**
+     * get array tags
+     * 
+     * @return array
+     */
+    public function getParseTags() {
+        //get all between example="example" ::: (\w+) creates array $result[1]-----------([^"]*) creates array $result[2]
+        preg_match_all('@(\w+)="([^"]*)"@', $this->string, $result);
+        //new array created from $result[1](key) => $result[2](Value)
+        $arrayTags = array_combine($result[1], $result[2]);
 
-	/**
-	 * parse tags array to new array
-	 *
-	 * @param array $arrayTags
-	 * @return array
-	 */
-	private function parseTags(array $arrayTags): array{
+        return $this->parseTags($arrayTags);
+    }
 
-		$parseArrayTags = [];
+    /**
+     * parse tags array to new array
+     * 
+     * @param array $arrayTags
+     * 
+     * @return array
+     */
+    private function parseTags(array $arrayTags) {
 
-		foreach ($arrayTags as $key => $value) {
-			//items
-			if (strpos($value, ',') !== false && strpos($value, '|') !== false) {
-				$parseArrayTags[$key] = $this->parseItems($value);
-				//validators
-			} elseif (strpos($value, ',') !== false) {
-				$parseArrayTags[$key] = $this->parseValidators($value);
-				//simple tag
-			} else {
-				$parseArrayTags[$key] = $value;
-			}
-		}
+        $parseArrayTags = [];
 
-		return $parseArrayTags;
-	}
+        foreach ($arrayTags as $key => $value) {
+            //items
+            if ($key === 'items') {
+                $parseArrayTags[$key] = $this->parseItems($value);
+                //validators
+            } elseif ($key === 'validators') {
+                $parseArrayTags[$key] = $this->parseValidators($value);
+                //simple tag
+            } else {
+                $parseArrayTags[$key] = $value;
+            }
+        }
 
-	/**
-	 *  parse items in string
-	 *
-	 * @param string $value
-	 * @return array
-	 */
-	private function parseItems(string $value): array{
-		$arrInfo = explode(",", $value);
+        return $parseArrayTags;
+    }
 
-		$newArray = [];
-		foreach ($arrInfo as $item) {
-			$values = explode("|", $item);
-			$newArray[trim($values[0])] = $values[1];
-		}
+    /**
+     *  parse items in string
+     * 
+     * @param string $value
+     * 
+     * @return array
+     */
+    private function parseItems($value) {
+        $arrInfo = explode("#", $value);
 
-		return $newArray;
-	}
+        $newArray = [];
+        foreach ($arrInfo as $item) {
+            $values = explode("|", $item);
+            $newArray[trim($values[0])] = $values[1];
+        }
 
-	/**
-	 * parse validators in string
-	 *
-	 * @param string $value
-	 * @return array
-	 */
-	private function parseValidators(string $value): array{
-		$arrInfo = explode(",", $value);
-		$newArray = [];
-		foreach ($arrInfo as $item) {
+        return $newArray;
+    }
 
-			// if item has () in value - $keyValidatorValue is equal text between this brackets
-			if (strpos($item, '(') !== false && strpos($item, ')') !== false) {
+    /**
+     * parse validators in string
+     * 
+     * @param string $value
+     * 
+     * @return array
+     */
+    private function parseValidators($value) {
+        $arrInfo = explode(",", $value);
+        $newArray = [];
+        foreach ($arrInfo as $item) {
 
-				preg_match('@\((.*?)\)@', $item, $match);
+            // if item has () in value - $keyValidatorValue is equal text between this brackets
+            if (strpos($item, '(') !== false && strpos($item, ')') !== false) {
 
-				$keyValidatorValue = $match[1];
-			} else {
-				$keyValidatorValue = '';
-			}
+                preg_match('@\((.*?)\)@', $item, $match);
 
-			//$newArray[$item] - delete bracket with text and trim $item
-			$newArray[trim(preg_replace("@\([^)]+\)@", "", $item))] = $keyValidatorValue;
-		}
+                $keyValidatorValue = $match[1];
+            } else {
+                $keyValidatorValue = '';
+            }
 
-		return $newArray;
-	}
+            //$newArray[$item] - delete bracket with text and trim $item
+            $newArray[trim(preg_replace("@\([^)]+\)@", "", $item))] = $keyValidatorValue;
+        }
+
+        return $newArray;
+    }
 
 }
